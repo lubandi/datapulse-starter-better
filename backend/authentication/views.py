@@ -3,6 +3,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import AccessToken
 from drf_spectacular.utils import extend_schema
 
@@ -19,6 +20,7 @@ class RegisterView(APIView):
         tags=["Auth"],
         summary="Register a new user",
     )
+    throttle_classes = [AnonRateThrottle]
     def post(self, request):
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -47,6 +49,7 @@ class LoginView(APIView):
         tags=["Auth"],
         summary="Login and get JWT token",
     )
+    throttle_classes = [AnonRateThrottle]
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
