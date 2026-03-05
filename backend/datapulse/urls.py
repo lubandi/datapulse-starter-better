@@ -23,7 +23,7 @@ class HealthCheckView(APIView):
 urlpatterns = [
     # Root & Health
     path("", RootView.as_view(), name="root"),
-    path("health", HealthCheckView.as_view(), name="health"),
+    path("health/", HealthCheckView.as_view(), name="health"),
 
     # API
     path("api/auth/", include("authentication.urls")),
