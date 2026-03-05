@@ -1,0 +1,89 @@
+"""Dataset upload router - IMPLEMENTED."""
+
+import os
+import json
+import uuid
+
+from django.conf import settings
+from rest_framework import status
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+
+from datasets.models import Dataset, DatasetFile
+from datasets.serializers import DatasetResponseSerializer, DatasetListSerializer
+from datasets.services.file_parser import parse_csv, parse_json
+
+
+@api_view(["POST"])
+@parser_classes([MultiPartParser, FormParser])
+def upload_dataset(request):
+    """Upload a CSV or JSON file and store dataset metadata."""
+    file = request.FILES.get("file")
+    if not file:
+        return Response(
+            {"detail": "No file provided."}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    filename = file.name or ""
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if ext not in ("csv", "json"):
+        return Response(
+            {"detail": f"Unsupported file type: {ext}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    upload_dir = settings.UPLOAD_DIR
+    os.makedirs(upload_dir, exist_ok=True)
+    unique_name = f"{uuid.uuid4().hex}_{filename}"
+    file_path = os.path.join(upload_dir, unique_name)
+
+    content = file.read()
+    if len(content) == 0:
+        return Response(
+            {"detail": "Uploaded file is empty."}, status=status.HTTP_400_BAD_REQUEST
+        )
+    with open(file_path, "wb") as fh:
+        fh.write(content)
+
+    try:
+        metadata = parse_csv(file_path) if ext == "csv" else parse_json(file_path)
+    except Exception as e:
+        os.remove(file_path)
+        return Response(
+            {"detail": f"Failed to parse: {e}"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    dataset = Dataset.objects.create(
+        name=filename.rsplit(".", 1)[0],
+        file_type=ext,
+        row_count=metadata["row_count"],
+        column_count=metadata["column_count"],
+        column_names=json.dumps(metadata["column_names"]),
+        status="PENDING",
+    )
+
+    DatasetFile.objects.create(
+        dataset=dataset, file_path=file_path, original_filename=filename
+    )
+
+    return Response(
+        DatasetResponseSerializer(dataset).data, status=status.HTTP_201_CREATED
+    )
+
+
+@api_view(["GET"])
+def list_datasets(request):
+    """List all datasets with pagination."""
+    skip = int(request.query_params.get("skip", 0))
+    limit = int(request.query_params.get("limit", 20))
+    limit = max(1, min(limit, 100))
+    skip = max(0, skip)
+
+    total = Dataset.objects.count()
+    datasets = Dataset.objects.all().order_by("-uploaded_at")[skip : skip + limit]
+
+    return Response(
+        DatasetListSerializer({"datasets": datasets, "total": total}).data,
+        status=status.HTTP_200_OK,
+    )
