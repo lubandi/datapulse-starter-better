@@ -1,9 +1,9 @@
 """Rules URL configuration."""
 
 from django.urls import path
-from rules import views
+from rules.views import RuleListCreateView, RuleDetailView
 
 urlpatterns = [
-    path("", views.rules_root, name="rules-root"),
-    path("<int:rule_id>", views.rule_detail, name="rule-detail"),
+    path("", RuleListCreateView.as_view(), name="rules-root"),
+    path("<int:rule_id>", RuleDetailView.as_view(), name="rule-detail"),
 ]

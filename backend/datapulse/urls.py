@@ -1,28 +1,39 @@
 """DataPulse URL Configuration."""
 
 from django.urls import path, include
-from rest_framework.decorators import api_view
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 
-@api_view(["GET"])
-def root(request):
+class RootView(APIView):
     """Root endpoint."""
-    return Response({"name": "DataPulse", "version": "1.0.0", "docs": "/docs"})
+
+    def get(self, request):
+        return Response({"name": "DataPulse", "version": "1.0.0", "docs": "/docs"})
 
 
-@api_view(["GET"])
-def health_check(request):
+class HealthCheckView(APIView):
     """Health check endpoint."""
-    return Response({"status": "healthy"})
+
+    def get(self, request):
+        return Response({"status": "healthy"})
 
 
 urlpatterns = [
-    path("", root),
-    path("health", health_check),
+    # Root & Health
+    path("", RootView.as_view(), name="root"),
+    path("health", HealthCheckView.as_view(), name="health"),
+
+    # API
     path("api/auth/", include("authentication.urls")),
     path("api/datasets/", include("datasets.urls")),
     path("api/rules/", include("rules.urls")),
     path("api/checks/", include("checks.urls")),
     path("api/reports/", include("reports.urls")),
+
+    # Swagger / OpenAPI
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]

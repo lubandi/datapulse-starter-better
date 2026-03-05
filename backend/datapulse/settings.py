@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "corsheaders",
     "rest_framework",
+    "drf_spectacular",
     "authentication",
     "datasets",
     "rules",
@@ -36,6 +37,15 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "datapulse.urls"
 WSGI_APPLICATION = "datapulse.wsgi.application"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {},
+    },
+]
 
 # --- CORS (same as original: allow all origins) ---
 CORS_ALLOW_ALL_ORIGINS = True
@@ -83,7 +93,16 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.AllowAny",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "UNAUTHENTICATED_USER": None,
+}
+
+# --- drf-spectacular (Swagger / OpenAPI) ---
+SPECTACULAR_SETTINGS = {
+    "TITLE": "DataPulse API",
+    "DESCRIPTION": "Data Quality Monitoring — Upload datasets, define rules, run checks, track trends.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 # --- SimpleJWT (replaces python-jose from FastAPI project) ---

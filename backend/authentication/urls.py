@@ -1,9 +1,9 @@
 """Authentication URL configuration."""
 
 from django.urls import path
-from authentication import views
+from authentication.views import RegisterView, LoginView
 
 urlpatterns = [
-    path("register", views.register, name="auth-register"),
-    path("login", views.login, name="auth-login"),
+    path("register", RegisterView.as_view(), name="auth-register"),
+    path("login", LoginView.as_view(), name="auth-login"),
 ]
