@@ -15,6 +15,7 @@ from drf_spectacular.types import OpenApiTypes
 from datasets.models import Dataset, DatasetFile
 from datasets.serializers import DatasetResponseSerializer, DatasetListSerializer
 from datasets.services.file_parser import parse_csv, parse_json
+from datapulse.exceptions import InvalidFileException
 
 
 class DatasetUploadView(APIView):
@@ -31,17 +32,12 @@ class DatasetUploadView(APIView):
     def post(self, request):
         file = request.FILES.get("file")
         if not file:
-            return Response(
-                {"detail": "No file provided."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise InvalidFileException("No file provided.")
 
         filename = file.name or ""
         ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
         if ext not in ("csv", "json"):
-            return Response(
-                {"detail": f"Unsupported file type: {ext}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise InvalidFileException(f"Unsupported file type: {ext}")
 
         upload_dir = settings.UPLOAD_DIR
         os.makedirs(upload_dir, exist_ok=True)
@@ -50,9 +46,7 @@ class DatasetUploadView(APIView):
 
         content = file.read()
         if len(content) == 0:
-            return Response(
-                {"detail": "Uploaded file is empty."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise InvalidFileException("Uploaded file is empty.")
         with open(file_path, "wb") as fh:
             fh.write(content)
 
@@ -60,9 +54,7 @@ class DatasetUploadView(APIView):
             metadata = parse_csv(file_path) if ext == "csv" else parse_json(file_path)
         except Exception as e:
             os.remove(file_path)
-            return Response(
-                {"detail": f"Failed to parse: {e}"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise InvalidFileException(f"Failed to parse: {e}")
 
         dataset = Dataset.objects.create(
             name=filename.rsplit(".", 1)[0],

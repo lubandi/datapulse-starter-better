@@ -8,6 +8,7 @@ from drf_spectacular.types import OpenApiTypes
 
 from rules.models import ValidationRule
 from rules.serializers import RuleCreateSerializer, RuleResponseSerializer, RuleUpdateSerializer
+from datapulse.exceptions import InvalidRuleException
 
 VALID_TYPES = {"NOT_NULL", "DATA_TYPE", "RANGE", "UNIQUE", "REGEX"}
 VALID_SEVERITIES = {"HIGH", "MEDIUM", "LOW"}
@@ -29,15 +30,10 @@ class RuleListCreateView(APIView):
         data = serializer.validated_data
 
         if data["rule_type"] not in VALID_TYPES:
-            return Response(
-                {"detail": f"Invalid rule_type: {VALID_TYPES}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise InvalidRuleException(f"Invalid rule_type: {VALID_TYPES}")
+        
         if data["severity"] not in VALID_SEVERITIES:
-            return Response(
-                {"detail": f"Invalid severity: {VALID_SEVERITIES}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise InvalidRuleException(f"Invalid severity: {VALID_SEVERITIES}")
 
         rule = ValidationRule.objects.create(**data)
         return Response(
