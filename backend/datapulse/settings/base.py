@@ -107,3 +107,56 @@ PASSWORD_HASHERS = [
 
 # --- File Uploads ---
 UPLOAD_DIR = env("UPLOAD_DIR", default=os.path.join(BASE_DIR, "uploads"))
+
+# --- Logging (Structlog Base) ---
+import structlog
+
+# We define the shared processors for structlog
+# The actual renderer (Console vs JSON) is appended in dev.py/prod.py
+STRUCTLOG_PROCESSORS = [
+    structlog.contextvars.merge_contextvars,
+    structlog.stdlib.add_logger_name,
+    structlog.stdlib.add_log_level,
+    structlog.stdlib.PositionalArgumentsFormatter(),
+    structlog.processors.TimeStamper(fmt="iso"),
+    structlog.processors.StackInfoRenderer(),
+    structlog.processors.format_exc_info,
+    structlog.processors.UnicodeDecoder(),
+]
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "structlog_formatter": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processors": [
+                structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            ],
+            # We will attach the correct renderer later depending on the environment
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "structlog_formatter",
+        },
+    },
+    "loggers": {
+        # Route all custom app logs through structlog
+        "authentication": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "datasets": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "rules": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "checks": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "reports": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        # You can optionally route django or other loggers here as well
+    },
+}
+
+structlog.configure(
+    processors=STRUCTLOG_PROCESSORS + [
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    cache_logger_on_first_use=True,
+)

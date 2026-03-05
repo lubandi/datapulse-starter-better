@@ -20,3 +20,9 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = (
 # Secure Cookies
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+# Use strictly JSON formatted structlog output in prod (easily parsable by ELK/Datadog)
+import structlog
+LOGGING["formatters"]["structlog_formatter"]["processors"].append(
+    structlog.processors.JSONRenderer()
+)
