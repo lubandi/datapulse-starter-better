@@ -6,4 +6,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN mkdir -p /app/uploads
 EXPOSE 8000
-CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py makemigrations authentication datasets rules checks reports --noinput && python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"]
