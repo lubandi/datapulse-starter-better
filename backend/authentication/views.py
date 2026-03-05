@@ -14,13 +14,14 @@ from authentication.services import create_user, authenticate_user
 class RegisterView(APIView):
     """Register a new user and return a JWT token."""
 
+    throttle_classes = [AnonRateThrottle]
     @extend_schema(
         request=UserCreateSerializer,
         responses={201: TokenSerializer},
         tags=["Auth"],
         summary="Register a new user",
     )
-    throttle_classes = [AnonRateThrottle]
+    
     def post(self, request):
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -43,13 +44,14 @@ class RegisterView(APIView):
 class LoginView(APIView):
     """Authenticate user and return a JWT token."""
 
+    throttle_classes = [AnonRateThrottle]
+
     @extend_schema(
         request=LoginSerializer,
         responses={200: TokenSerializer},
         tags=["Auth"],
         summary="Login and get JWT token",
     )
-    throttle_classes = [AnonRateThrottle]
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
