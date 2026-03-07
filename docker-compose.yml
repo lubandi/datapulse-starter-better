@@ -3,7 +3,7 @@ version: "3.8"
 services:
   db:
     image: postgres:15-alpine
-    container_name: datapulse-db
+    container_name: datapulse-starter-db
     environment:
       POSTGRES_USER: datapulse
       POSTGRES_PASSWORD: datapulse
@@ -22,7 +22,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: datapulse-backend
+    container_name: datapulse-starter-backend
     environment:
       DJANGO_SETTINGS_MODULE: "datapulse.settings.prod"
       DATABASE_URL: postgresql://datapulse:datapulse@db:5432/datapulse

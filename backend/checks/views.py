@@ -25,7 +25,7 @@ class RunChecksView(APIView):
         1. Fetch dataset by ID (404 if not found)
         2. Get DatasetFile, read file path
         3. Load file with file_parser (parse_csv or parse_json)
-        4. Fetch active ValidationRules matching dataset type
+        4. Fetch active ValidationRules matching dataset type OR blank dataset type (Q(dataset_type=dataset.type) | Q(dataset_type=""))
         5. Init ValidationEngine, call run_all_checks(df, rules)
         6. Create CheckResult records for each check
         7. Calculate quality score via scoring_service
