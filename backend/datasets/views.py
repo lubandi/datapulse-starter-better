@@ -18,6 +18,8 @@ from datasets.services.file_parser import parse_csv, parse_json
 from datapulse.exceptions import InvalidFileException
 
 
+from rest_framework import generics
+
 class DatasetUploadView(APIView):
     """Upload a CSV or JSON file and store dataset metadata."""
 
@@ -62,6 +64,7 @@ class DatasetUploadView(APIView):
             row_count=metadata["row_count"],
             column_count=metadata["column_count"],
             column_names=json.dumps(metadata["column_names"]),
+            uploaded_by=request.user,
             status="PENDING",
         )
 
@@ -74,28 +77,23 @@ class DatasetUploadView(APIView):
         )
 
 
-class DatasetListView(APIView):
-    """List all datasets with pagination."""
+class DatasetListView(generics.ListAPIView):
+    """List all datasets with role-based access control."""
+    serializer_class = DatasetResponseSerializer
+    pagination_key = "datasets"
 
     @extend_schema(
-        parameters=[
-            OpenApiParameter("skip", OpenApiTypes.INT, OpenApiParameter.QUERY, default=0),
-            OpenApiParameter("limit", OpenApiTypes.INT, OpenApiParameter.QUERY, default=20),
-        ],
         responses={200: DatasetListSerializer},
         tags=["Datasets"],
         summary="List all datasets",
     )
-    def get(self, request):
-        skip = int(request.query_params.get("skip", 0))
-        limit = int(request.query_params.get("limit", 20))
-        limit = max(1, min(limit, 100))
-        skip = max(0, skip)
+    def get(self, request, *args, **kwargs):
+        # We override get to maintain the exact list serializer shape in docs
+        # but generics.ListAPIView + our custom pagination handles the data
+        return super().get(request, *args, **kwargs)
 
-        total = Dataset.objects.count()
-        datasets = Dataset.objects.all().order_by("-uploaded_at")[skip : skip + limit]
+    def get_queryset(self):
+        if getattr(self.request.user, "role", "USER") == "ADMIN":
+            return Dataset.objects.all().order_by("-uploaded_at")
+        return Dataset.objects.filter(uploaded_by=self.request.user).order_by("-uploaded_at")
 
-        return Response(
-            DatasetListSerializer({"datasets": datasets, "total": total}).data,
-            status=status.HTTP_200_OK,
-        )
