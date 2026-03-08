@@ -39,7 +39,7 @@ def test_full_e2e_flow(client):
     upload_resp = client.post("/api/datasets/upload", {"file": uploaded}, format="multipart")
     assert upload_resp.status_code == 201
     dataset_id = upload_resp.json()["id"]
-    assert upload_resp.json()["row_count"] == 0
+    assert upload_resp.json()["row_count"] == 5
 
     # 3. Create rules
     rules_to_create = [
