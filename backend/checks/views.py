@@ -22,9 +22,16 @@ class RunChecksView(APIView):
     @extend_schema(
         responses={200: QualityScoreResponseSerializer},
         tags=["Checks"],
-        summary="Run quality checks on a dataset",
+        summary="Run quality checks on a dataset (TODO)",
     )
     def post(self, request, dataset_id):
+        """Run all applicable validation checks on a dataset - TODO: Implement."""
+        from rest_framework.exceptions import APIException
+        class NotImplementedException(APIException):
+            status_code = 501
+            default_detail = "POST /api/checks/run not implemented"
+            default_code = 'not_implemented'
+        raise NotImplementedException()
         # 1. Fetch dataset
         try:
             if getattr(request.user, "role", "USER") == "ADMIN":
@@ -99,9 +106,16 @@ class CheckResultsView(APIView):
     @extend_schema(
         responses={200: CheckResultResponseSerializer(many=True)},
         tags=["Checks"],
-        summary="Get check results for a dataset",
+        summary="Get check results for a dataset (TODO)",
     )
     def get(self, request, dataset_id):
+        """Get all check results for a dataset - TODO: Implement."""
+        from rest_framework.exceptions import APIException
+        class NotImplementedException(APIException):
+            status_code = 501
+            default_detail = "GET /api/checks/results not implemented"
+            default_code = 'not_implemented'
+        raise NotImplementedException()
         # Access control
         try:
             if getattr(request.user, "role", "USER") == "ADMIN":

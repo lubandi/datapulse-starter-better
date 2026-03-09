@@ -21,9 +21,16 @@ class DatasetReportView(APIView):
     @extend_schema(
         responses={200: QualityReportSerializer},
         tags=["Reports"],
-        summary="Get quality report for a dataset",
+        summary="Get quality report for a dataset (TODO)",
     )
     def get(self, request, dataset_id):
+        """Get a full quality report for a dataset - TODO: Implement."""
+        from rest_framework.exceptions import APIException
+        class NotImplementedException(APIException):
+            status_code = 501
+            default_detail = "GET /api/reports/{id} not implemented"
+            default_code = 'not_implemented'
+        raise NotImplementedException()
         try:
             if getattr(request.user, "role", "USER") == "ADMIN":
                 dataset = Dataset.objects.get(id=dataset_id)
@@ -59,9 +66,16 @@ class QualityTrendsView(APIView):
         ],
         responses={200: QualityScoreResponseSerializer(many=True)},
         tags=["Reports"],
-        summary="Get quality score trends",
+        summary="Get quality score trends (TODO)",
     )
     def get(self, request):
+        """Get quality score trends over time - TODO: Implement."""
+        from rest_framework.exceptions import APIException
+        class NotImplementedException(APIException):
+            status_code = 501
+            default_detail = "GET /api/reports/trends not implemented"
+            default_code = 'not_implemented'
+        raise NotImplementedException()
         days = int(request.query_params.get("days", 30))
         start_date = timezone.now() - timedelta(days=days)
         

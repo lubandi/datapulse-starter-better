@@ -66,10 +66,16 @@ class RuleDetailView(APIView):
         request=RuleUpdateSerializer,
         responses={200: RuleResponseSerializer},
         tags=["Rules"],
-        summary="Update a validation rule",
+        summary="Update a validation rule (TODO)",
     )
     def put(self, request, rule_id):
-        """Update a validation rule."""
+        """Update a validation rule - TODO: Implement."""
+        from rest_framework.exceptions import APIException
+        class NotImplementedException(APIException):
+            status_code = 501
+            default_detail = "PUT /api/rules/{id} not implemented"
+            default_code = 'not_implemented'
+        raise NotImplementedException()
         try:
             rule = ValidationRule.objects.get(id=rule_id, is_active=True)
         except ValidationRule.DoesNotExist:
@@ -98,10 +104,16 @@ class RuleDetailView(APIView):
     @extend_schema(
         responses={204: None},
         tags=["Rules"],
-        summary="Delete a validation rule",
+        summary="Delete a validation rule (TODO)",
     )
     def delete(self, request, rule_id):
-        """Soft-delete a validation rule by setting is_active=False."""
+        """Soft-delete a validation rule - TODO: Implement."""
+        from rest_framework.exceptions import APIException
+        class NotImplementedException(APIException):
+            status_code = 501
+            default_detail = "DELETE /api/rules/{id} not implemented"
+            default_code = 'not_implemented'
+        raise NotImplementedException()
         try:
             rule = ValidationRule.objects.get(id=rule_id, is_active=True)
         except ValidationRule.DoesNotExist:
